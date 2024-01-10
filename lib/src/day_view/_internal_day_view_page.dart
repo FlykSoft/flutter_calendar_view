@@ -108,6 +108,8 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
   final HourIndicatorSettings quarterHourIndicatorSettings;
 
   final ScrollController scrollController;
+  final ScrollController horizontalScrollController;
+  final ScrollController scrollableHeaderScrollController;
 
   /// Emulate vertical line offset from hour line starts.
   final double emulateVerticalOffsetBy;
@@ -139,6 +141,8 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
     required this.scrollNotifier,
     required this.fullDayEventBuilder,
     required this.scrollController,
+    required this.horizontalScrollController,
+    required this.scrollableHeaderScrollController,
     required this.dayDetectorBuilder,
     required this.showHalfHours,
     required this.showQuarterHours,
@@ -158,106 +162,177 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
           fullDayEventList.isEmpty
               ? SizedBox.shrink()
               : fullDayEventBuilder(fullDayEventList, date),
+          Padding(
+            padding: EdgeInsetsDirectional.only(start: timeLineWidth - 1),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              controller: scrollableHeaderScrollController,
+              child: Container(
+                height: 50,
+                width: (width * 2) + timeLineWidth,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: AlignmentDirectional.centerStart,
+                    end: AlignmentDirectional.centerEnd,
+                    colors: [
+                      Colors.blue,
+                      Colors.green,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: SingleChildScrollView(
               controller: scrollController,
               child: SizedBox(
-                height: height,
-                width: width,
-                child: Stack(
+                width: width * 2,
+                child: Row(
                   children: [
-                    CustomPaint(
-                      size: Size(width, height),
-                      painter: hourLinePainter(
-                        hourIndicatorSettings.color,
-                        hourIndicatorSettings.height,
-                        timeLineWidth + hourIndicatorSettings.offset,
-                        heightPerMinute,
-                        showVerticalLine,
-                        verticalLineOffset,
-                        hourIndicatorSettings.lineStyle,
-                        hourIndicatorSettings.dashWidth,
-                        hourIndicatorSettings.dashSpaceWidth,
-                        emulateVerticalOffsetBy,
+                    SizedBox(
+                      width: timeLineOffset,
+                    ),
+                    SizedBox(
+                      width: timeLineWidth,
+                      child: Stack(
+                        children: [
+                          TimeLine(
+                            height: height,
+                            hourHeight: hourHeight,
+                            timeLineBuilder: timeLineBuilder,
+                            timeLineOffset: timeLineOffset,
+                            timeLineWidth: timeLineWidth,
+                            showHalfHours: showHalfHours,
+                            showQuarterHours: showQuarterHours,
+                            key: ValueKey(heightPerMinute),
+                          ),
+                          CustomPaint(
+                            size: Size(width * 2, height),
+                            painter: hourLinePainter(
+                              hourIndicatorSettings.color,
+                              hourIndicatorSettings.height,
+                              hourIndicatorSettings.offset,
+                              heightPerMinute,
+                              showVerticalLine,
+                              verticalLineOffset,
+                              hourIndicatorSettings.lineStyle,
+                              hourIndicatorSettings.dashWidth,
+                              hourIndicatorSettings.dashSpaceWidth,
+                              emulateVerticalOffsetBy,
+                            ),
+                          ),
+                          if (showVerticalLine)
+                            Align(
+                              alignment: AlignmentDirectional.centerEnd,
+                              child: Container(
+                                width: 1,
+                                height: height,
+                                color: hourIndicatorSettings.color,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    if (showHalfHours)
-                      CustomPaint(
-                        size: Size(width, height),
-                        painter: HalfHourLinePainter(
-                          lineColor: halfHourIndicatorSettings.color,
-                          lineHeight: halfHourIndicatorSettings.height,
-                          offset:
-                              timeLineWidth + halfHourIndicatorSettings.offset,
-                          minuteHeight: heightPerMinute,
-                          lineStyle: halfHourIndicatorSettings.lineStyle,
-                          dashWidth: halfHourIndicatorSettings.dashWidth,
-                          dashSpaceWidth:
-                              halfHourIndicatorSettings.dashSpaceWidth,
-                        ),
-                      ),
-                    if (showQuarterHours)
-                      CustomPaint(
-                        size: Size(width, height),
-                        painter: QuarterHourLinePainter(
-                          lineColor: quarterHourIndicatorSettings.color,
-                          lineHeight: quarterHourIndicatorSettings.height,
-                          offset: timeLineWidth +
-                              quarterHourIndicatorSettings.offset,
-                          minuteHeight: heightPerMinute,
-                          lineStyle: quarterHourIndicatorSettings.lineStyle,
-                          dashWidth: quarterHourIndicatorSettings.dashWidth,
-                          dashSpaceWidth:
-                              quarterHourIndicatorSettings.dashSpaceWidth,
-                        ),
-                      ),
-                    dayDetectorBuilder(
-                      width: width,
-                      height: height,
-                      heightPerMinute: heightPerMinute,
-                      date: date,
-                      minuteSlotSize: minuteSlotSize,
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: EventGenerator<T>(
-                        height: height,
-                        date: date,
-                        onTileTap: onTileTap,
-                        eventArranger: eventArranger,
-                        events: controller.getEventsOnDay(
-                          date,
-                          includeFullDayEvents: false,
-                        ),
-                        heightPerMinute: heightPerMinute,
-                        eventTileBuilder: eventTileBuilder,
-                        scrollNotifier: scrollNotifier,
-                        width: width -
-                            timeLineWidth -
-                            hourIndicatorSettings.offset -
-                            verticalLineOffset,
-                      ),
-                    ),
-                    TimeLine(
-                      height: height,
-                      hourHeight: hourHeight,
-                      timeLineBuilder: timeLineBuilder,
-                      timeLineOffset: timeLineOffset,
-                      timeLineWidth: timeLineWidth,
-                      showHalfHours: showHalfHours,
-                      showQuarterHours: showQuarterHours,
-                      key: ValueKey(heightPerMinute),
-                    ),
-                    if (showLiveLine && liveTimeIndicatorSettings.height > 0)
-                      IgnorePointer(
-                        child: LiveTimeIndicator(
-                          liveTimeIndicatorSettings: liveTimeIndicatorSettings,
-                          width: width,
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: horizontalScrollController,
+                        scrollDirection: Axis.horizontal,
+                        child: SizedBox(
                           height: height,
-                          heightPerMinute: heightPerMinute,
-                          timeLineWidth: timeLineWidth,
+                          width: width * 2,
+                          child: Stack(
+                            children: [
+                              CustomPaint(
+                                size: Size(width * 2, height),
+                                painter: hourLinePainter(
+                                  hourIndicatorSettings.color,
+                                  hourIndicatorSettings.height,
+                                  hourIndicatorSettings.offset,
+                                  heightPerMinute,
+                                  showVerticalLine,
+                                  verticalLineOffset,
+                                  hourIndicatorSettings.lineStyle,
+                                  hourIndicatorSettings.dashWidth,
+                                  hourIndicatorSettings.dashSpaceWidth,
+                                  emulateVerticalOffsetBy,
+                                ),
+                              ),
+                              if (showHalfHours)
+                                CustomPaint(
+                                  size: Size(width * 2, height),
+                                  painter: HalfHourLinePainter(
+                                    lineColor: halfHourIndicatorSettings.color,
+                                    lineHeight:
+                                        halfHourIndicatorSettings.height,
+                                    offset: halfHourIndicatorSettings.offset,
+                                    minuteHeight: heightPerMinute,
+                                    lineStyle:
+                                        halfHourIndicatorSettings.lineStyle,
+                                    dashWidth:
+                                        halfHourIndicatorSettings.dashWidth,
+                                    dashSpaceWidth: halfHourIndicatorSettings
+                                        .dashSpaceWidth,
+                                  ),
+                                ),
+                              if (showQuarterHours)
+                                CustomPaint(
+                                  size: Size(width * 2, height),
+                                  painter: QuarterHourLinePainter(
+                                    lineColor:
+                                        quarterHourIndicatorSettings.color,
+                                    lineHeight:
+                                        quarterHourIndicatorSettings.height,
+                                    offset: quarterHourIndicatorSettings.offset,
+                                    minuteHeight: heightPerMinute,
+                                    lineStyle:
+                                        quarterHourIndicatorSettings.lineStyle,
+                                    dashWidth:
+                                        quarterHourIndicatorSettings.dashWidth,
+                                    dashSpaceWidth: quarterHourIndicatorSettings
+                                        .dashSpaceWidth,
+                                  ),
+                                ),
+                              dayDetectorBuilder(
+                                width: width,
+                                height: height,
+                                heightPerMinute: heightPerMinute,
+                                date: date,
+                                minuteSlotSize: minuteSlotSize,
+                              ),
+                              EventGenerator<T>(
+                                height: height,
+                                date: date,
+                                onTileTap: onTileTap,
+                                eventArranger: eventArranger,
+                                events: controller.getEventsOnDay(
+                                  date,
+                                  includeFullDayEvents: false,
+                                ),
+                                heightPerMinute: heightPerMinute,
+                                eventTileBuilder: eventTileBuilder,
+                                scrollNotifier: scrollNotifier,
+                                width: (width * 2) -
+                                    hourIndicatorSettings.offset -
+                                    verticalLineOffset,
+                              ),
+                              if (showLiveLine &&
+                                  liveTimeIndicatorSettings.height > 0)
+                                IgnorePointer(
+                                  child: LiveTimeIndicator(
+                                    liveTimeIndicatorSettings:
+                                        liveTimeIndicatorSettings,
+                                    width: width * 2,
+                                    height: height,
+                                    heightPerMinute: heightPerMinute,
+                                    timeLineWidth: 0,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
