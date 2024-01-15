@@ -6,16 +6,21 @@ import 'package:flutter/material.dart';
 
 import '../calendar_view.dart';
 
-typedef CellBuilder<T extends Object?> = Widget Function(
+typedef CellBuilder<T extends Object?, S extends Object?> = Widget Function(
   DateTime date,
-  List<CalendarEventData<T>> event,
+  List<CalendarEventData<T, S>> event,
   bool isToday,
   bool isInMonth,
 );
 
-typedef EventTileBuilder<T extends Object?> = Widget Function(
+typedef OwnerTileBuilder<S extends Object?> = Widget Function(
+  S owner,
+);
+
+typedef EventTileBuilder<T extends Object?, S extends Object?> = Widget
+    Function(
   DateTime date,
-  List<CalendarEventData<T>> events,
+  List<CalendarEventData<T, S>> events,
   Rect boundary,
   DateTime startDuration,
   DateTime endDuration,
@@ -41,10 +46,13 @@ typedef WeekNumberBuilder = Widget? Function(
   DateTime firstDayOfWeek,
 );
 
-typedef FullDayEventBuilder<T> = Widget Function(
-    List<CalendarEventData<T>> events, DateTime date);
+typedef FullDayEventBuilder<T, S> = Widget Function(
+    List<CalendarEventData<T, S>> events, DateTime date);
 
 typedef CalendarPageChangeCallBack = void Function(DateTime date, int page);
+typedef DayCalendarPageChangeCallBack = void Function(
+  DateTime date,
+);
 
 typedef PageChangeCallback = void Function(
   DateTime date,
@@ -59,18 +67,19 @@ typedef WeekPageHeaderBuilder = Widget Function(
   DateTime endDate,
 );
 
-typedef TileTapCallback<T extends Object?> = void Function(
-    CalendarEventData<T> event, DateTime date);
+typedef TileTapCallback<T extends Object?, S extends Object?> = void Function(
+    CalendarEventData<T, S> event, DateTime date);
 
-typedef CellTapCallback<T extends Object?> = void Function(
-    List<CalendarEventData<T>> events, DateTime date);
+typedef CellTapCallback<T extends Object?, S extends Object?> = void Function(
+    List<CalendarEventData<T, S>> events, DateTime date);
 
 typedef DatePressCallback = void Function(DateTime date);
 
 typedef DateTapCallback = void Function(DateTime date);
 
-typedef EventFilter<T extends Object?> = List<CalendarEventData<T>> Function(
-    DateTime date, List<CalendarEventData<T>> events);
+typedef EventFilter<T extends Object?, S extends Object?>
+    = List<CalendarEventData<T, S>> Function(
+        DateTime date, List<CalendarEventData<T, S>> events);
 
 typedef CustomHourLinePainter = CustomPainter Function(
   Color lineColor,

@@ -11,7 +11,6 @@ import '../constants.dart';
 import '../extensions.dart';
 
 part 'merge_event_arranger.dart';
-
 part 'side_event_arranger.dart';
 
 /// {@template event_arranger_arrange_method_doc}
@@ -20,7 +19,7 @@ part 'side_event_arranger.dart';
 ///
 /// {@endtemplate}
 
-abstract class EventArranger<T extends Object?> {
+abstract class EventArranger<T extends Object?, S extends Object?> {
   /// [EventArranger] defines how simultaneous events will be arranged.
   /// Implement [arrange] method to define how events will be arranged.
   ///
@@ -31,8 +30,8 @@ abstract class EventArranger<T extends Object?> {
   const EventArranger();
 
   /// {@macro event_arranger_arrange_method_doc}
-  List<OrganizedCalendarEventData<T>> arrange({
-    required List<CalendarEventData<T>> events,
+  List<OrganizedCalendarEventData<T, S>> arrange({
+    required List<CalendarEventData<T, S>> events,
     required double height,
     required double width,
     required double heightPerMinute,
@@ -40,7 +39,7 @@ abstract class EventArranger<T extends Object?> {
 }
 
 /// Provides event data with its [left], [right], [top], and [bottom] boundary.
-class OrganizedCalendarEventData<T extends Object?> {
+class OrganizedCalendarEventData<T extends Object?, S extends Object?> {
   /// Top position from where event tile will start.
   final double top;
 
@@ -54,7 +53,7 @@ class OrganizedCalendarEventData<T extends Object?> {
   final double right;
 
   /// List of events to display in given tile.
-  final List<CalendarEventData<T>> events;
+  final List<CalendarEventData<T, S>> events;
 
   /// Start duration of event/event list.
   final DateTime startDuration;
@@ -83,8 +82,8 @@ class OrganizedCalendarEventData<T extends Object?> {
         top = 0,
         bottom = 0;
 
-  OrganizedCalendarEventData<T> getWithUpdatedRight(double right) =>
-      OrganizedCalendarEventData<T>(
+  OrganizedCalendarEventData<T, S> getWithUpdatedRight(double right) =>
+      OrganizedCalendarEventData<T, S>(
         top: top,
         bottom: bottom,
         endDuration: endDuration,

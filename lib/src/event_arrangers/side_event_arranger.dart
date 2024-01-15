@@ -4,7 +4,8 @@
 
 part of 'event_arrangers.dart';
 
-class SideEventArranger<T extends Object?> extends EventArranger<T> {
+class SideEventArranger<T extends Object?, S extends Object?>
+    extends EventArranger<T, S> {
   /// This class will provide method that will arrange
   /// all the events side by side.
   const SideEventArranger({
@@ -24,13 +25,13 @@ class SideEventArranger<T extends Object?> extends EventArranger<T> {
   /// Make sure that all the events that are passed in [events], must be in
   /// ascending order of start time.
   @override
-  List<OrganizedCalendarEventData<T>> arrange({
-    required List<CalendarEventData<T>> events,
+  List<OrganizedCalendarEventData<T, S>> arrange({
+    required List<CalendarEventData<T, S>> events,
     required double height,
     required double width,
     required double heightPerMinute,
   }) {
-    final mergedEvents = MergeEventArranger<T>(
+    final mergedEvents = MergeEventArranger<T, S>(
       includeEdges: includeEdges,
     ).arrange(
       events: events,
@@ -39,7 +40,7 @@ class SideEventArranger<T extends Object?> extends EventArranger<T> {
       heightPerMinute: heightPerMinute,
     );
 
-    final arrangedEvents = <OrganizedCalendarEventData<T>>[];
+    final arrangedEvents = <OrganizedCalendarEventData<T, S>>[];
 
     for (final event in mergedEvents) {
       // If there is only one event in list that means, there
@@ -54,7 +55,7 @@ class SideEventArranger<T extends Object?> extends EventArranger<T> {
       if (concurrentEvents.isEmpty) continue;
 
       var column = 1;
-      final sideEventData = <_SideEventData<T>>[];
+      final sideEventData = <_SideEventData<T, S>>[];
       var currentEventIndex = 0;
 
       while (concurrentEvents.isNotEmpty) {
@@ -105,7 +106,7 @@ class SideEventArranger<T extends Object?> extends EventArranger<T> {
                     ? Constants.minutesADay
                     : endTime.getTotalMinutes) *
                 heightPerMinute;
-        arrangedEvents.add(OrganizedCalendarEventData<T>(
+        arrangedEvents.add(OrganizedCalendarEventData<T, S>(
           left: slotWidth * (sideEvent.column - 1),
           right: slotWidth * (column - sideEvent.column),
           top: startTime.getTotalMinutes * heightPerMinute,
@@ -121,9 +122,9 @@ class SideEventArranger<T extends Object?> extends EventArranger<T> {
   }
 }
 
-class _SideEventData<T> {
+class _SideEventData<T, S> {
   final int column;
-  final CalendarEventData<T> event;
+  final CalendarEventData<T, S> event;
 
   const _SideEventData({
     required this.column,

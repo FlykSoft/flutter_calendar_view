@@ -189,7 +189,7 @@ class DefaultTimeLineMark extends StatelessWidget {
 }
 
 /// This class is defined default view of full day event
-class FullDayEventView<T> extends StatelessWidget {
+class FullDayEventView<T, S> extends StatelessWidget {
   const FullDayEventView({
     Key? key,
     this.boxConstraints = const BoxConstraints(maxHeight: 100),
@@ -205,19 +205,19 @@ class FullDayEventView<T> extends StatelessWidget {
   final BoxConstraints boxConstraints;
 
   /// Define List of Event to display
-  final List<CalendarEventData<T>> events;
+  final List<CalendarEventData<T, S>> events;
 
   /// Define Padding of view
   final EdgeInsets? padding;
 
   /// Define custom Item view of Event.
-  final Widget Function(CalendarEventData<T>? event)? itemView;
+  final Widget Function(CalendarEventData<T, S>? event)? itemView;
 
   /// Style for title
   final TextStyle? titleStyle;
 
   /// Called when user taps on event tile.
-  final TileTapCallback<T>? onEventTap;
+  final TileTapCallback<T, S>? onEventTap;
 
   /// Defines date for which events will be displayed.
   final DateTime date;

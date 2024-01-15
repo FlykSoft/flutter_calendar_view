@@ -10,11 +10,13 @@ import '../enumerations.dart';
 import '../event_arrangers/event_arrangers.dart';
 import '../event_controller.dart';
 import '../modals.dart';
+import '../owner_view_configuration.dart';
 import '../painters.dart';
 import '../typedefs.dart';
 
 /// Defines a single day page.
-class InternalDayViewPage<T extends Object?> extends StatelessWidget {
+class InternalDayViewPage<T extends Object?, S extends Object?>
+    extends StatelessWidget {
   /// Width of the page
   final double width;
 
@@ -25,10 +27,13 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
   final DateTime date;
 
   /// A builder that returns a widget to show event on screen.
-  final EventTileBuilder<T> eventTileBuilder;
+  final EventTileBuilder<T, S> eventTileBuilder;
+
+  /// A builder that returns a widget to show owner on screen.
+  final OwnerTileBuilder<S> ownerTileBuilder;
 
   /// Controller for calendar
-  final EventController<T> controller;
+  final EventController<T, S> controller;
 
   /// A builder that builds time line.
   final DateWidgetBuilder timeLineBuilder;
@@ -62,7 +67,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
   final double hourHeight;
 
   /// event arranger to arrange events.
-  final EventArranger<T> eventArranger;
+  final EventArranger<T, S> eventArranger;
 
   /// Flag to display vertical line.
   final bool showVerticalLine;
@@ -71,7 +76,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
   final double verticalLineOffset;
 
   /// Called when user taps on event tile.
-  final CellTapCallback<T>? onTileTap;
+  final CellTapCallback<T, S>? onTileTap;
 
   /// Called when user long press on calendar.
   final DatePressCallback? onDateLongPress;
@@ -93,7 +98,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
   final EventScrollConfiguration scrollNotifier;
 
   /// Display full day events.
-  final FullDayEventBuilder<T> fullDayEventBuilder;
+  final FullDayEventBuilder<T, S> fullDayEventBuilder;
 
   /// Flag to display half hours.
   final bool showHalfHours;
@@ -114,6 +119,9 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
   /// Emulate vertical line offset from hour line starts.
   final double emulateVerticalOffsetBy;
 
+  /// It indicates how to show owner tile
+  final OwnerViewConfiguration ownerViewConfiguration;
+
   /// Defines a single day page.
   const InternalDayViewPage({
     Key? key,
@@ -121,6 +129,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
     required this.width,
     required this.date,
     required this.eventTileBuilder,
+    required this.ownerTileBuilder,
     required this.controller,
     required this.timeLineBuilder,
     required this.hourIndicatorSettings,
@@ -149,6 +158,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
     required this.halfHourIndicatorSettings,
     required this.quarterHourIndicatorSettings,
     required this.emulateVerticalOffsetBy,
+    this.ownerViewConfiguration = const OwnerViewConfiguration(),
   }) : super(key: key);
 
   @override
@@ -162,22 +172,19 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
           fullDayEventList.isEmpty
               ? SizedBox.shrink()
               : fullDayEventBuilder(fullDayEventList, date),
-          Padding(
-            padding: EdgeInsetsDirectional.only(start: timeLineWidth - 1),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+          Container(
+            height: ownerViewConfiguration.height,
+            width: (controller.allOwners.length * _ownerWidth) + timeLineWidth,
+            child: ListView.builder(
               controller: scrollableHeaderScrollController,
-              child: Container(
-                height: 50,
-                width: (width * 2) + timeLineWidth,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: AlignmentDirectional.centerStart,
-                    end: AlignmentDirectional.centerEnd,
-                    colors: [
-                      Colors.blue,
-                      Colors.green,
-                    ],
+              padding: EdgeInsetsDirectional.only(start: timeLineWidth),
+              scrollDirection: Axis.horizontal,
+              itemCount: controller.allOwners.length,
+              itemBuilder: (context, index) => SizedBox(
+                width: _ownerWidth,
+                child: ownerTileBuilder(
+                  controller.allOwners.elementAt(
+                    index,
                   ),
                 ),
               ),
@@ -240,11 +247,11 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
                         scrollDirection: Axis.horizontal,
                         child: SizedBox(
                           height: height,
-                          width: width * 2,
+                          width: _totalOwnersWidth,
                           child: Stack(
                             children: [
                               CustomPaint(
-                                size: Size(width * 2, height),
+                                size: Size(_totalOwnersWidth, height),
                                 painter: hourLinePainter(
                                   hourIndicatorSettings.color,
                                   hourIndicatorSettings.height,
@@ -260,7 +267,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
                               ),
                               if (showHalfHours)
                                 CustomPaint(
-                                  size: Size(width * 2, height),
+                                  size: Size(_totalOwnersWidth, height),
                                   painter: HalfHourLinePainter(
                                     lineColor: halfHourIndicatorSettings.color,
                                     lineHeight:
@@ -277,7 +284,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
                                 ),
                               if (showQuarterHours)
                                 CustomPaint(
-                                  size: Size(width * 2, height),
+                                  size: Size(_totalOwnersWidth, height),
                                   painter: QuarterHourLinePainter(
                                     lineColor:
                                         quarterHourIndicatorSettings.color,
@@ -300,21 +307,31 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
                                 date: date,
                                 minuteSlotSize: minuteSlotSize,
                               ),
-                              EventGenerator<T>(
-                                height: height,
-                                date: date,
-                                onTileTap: onTileTap,
-                                eventArranger: eventArranger,
-                                events: controller.getEventsOnDay(
-                                  date,
-                                  includeFullDayEvents: false,
-                                ),
-                                heightPerMinute: heightPerMinute,
-                                eventTileBuilder: eventTileBuilder,
-                                scrollNotifier: scrollNotifier,
-                                width: (width * 2) -
-                                    hourIndicatorSettings.offset -
-                                    verticalLineOffset,
+                              Row(
+                                children: controller.allOwners
+                                    .map(
+                                      (owner) => Expanded(
+                                        child: EventGenerator<T, S>(
+                                          height: height,
+                                          date: date,
+                                          onTileTap: onTileTap,
+                                          eventArranger: eventArranger,
+                                          events:
+                                              controller.getOwnerEventsOnDay(
+                                            date,
+                                            owner,
+                                            includeFullDayEvents: false,
+                                          ),
+                                          heightPerMinute: heightPerMinute,
+                                          eventTileBuilder: eventTileBuilder,
+                                          scrollNotifier: scrollNotifier,
+                                          width: _ownerWidth -
+                                              hourIndicatorSettings.offset -
+                                              verticalLineOffset,
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
                               ),
                               if (showLiveLine &&
                                   liveTimeIndicatorSettings.height > 0)
@@ -322,7 +339,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
                                   child: LiveTimeIndicator(
                                     liveTimeIndicatorSettings:
                                         liveTimeIndicatorSettings,
-                                    width: width * 2,
+                                    width: _totalOwnersWidth,
                                     height: height,
                                     heightPerMinute: heightPerMinute,
                                     timeLineWidth: 0,
@@ -342,4 +359,11 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
       ),
     );
   }
+
+  double get _ownerWidth =>
+      ownerViewConfiguration.widthPerOwner ?? _defaultOwnerWidth;
+
+  double get _defaultOwnerWidth => width - timeLineWidth;
+
+  double get _totalOwnersWidth => controller.allOwners.length * _ownerWidth;
 }

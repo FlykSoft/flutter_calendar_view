@@ -14,7 +14,8 @@ import '../painters.dart';
 import '../typedefs.dart';
 
 /// A single page for week view.
-class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
+class InternalWeekViewPage<T extends Object?, S extends Object?>
+    extends StatelessWidget {
   /// Width of the page.
   final double width;
 
@@ -25,11 +26,11 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
   final List<DateTime> dates;
 
   /// Builds tile for a single event.
-  final EventTileBuilder<T> eventTileBuilder;
+  final EventTileBuilder<T, S> eventTileBuilder;
 
   /// A calendar controller that controls all the events and rebuilds widget
   /// if event(s) are added or removed.
-  final EventController<T> controller;
+  final EventController<T, S> controller;
 
   /// A builder to build time line.
   final DateWidgetBuilder timeLineBuilder;
@@ -65,7 +66,7 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
   final double hourHeight;
 
   /// Arranger to arrange events.
-  final EventArranger<T> eventArranger;
+  final EventArranger<T, S> eventArranger;
 
   /// Flag to display vertical line or not.
   final bool showVerticalLine;
@@ -91,7 +92,7 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
   final ScrollController scrollController;
 
   /// Called when user taps on event tile.
-  final CellTapCallback<T>? onTileTap;
+  final CellTapCallback<T, S>? onTileTap;
 
   /// Defines which days should be displayed in one week.
   ///
@@ -118,7 +119,7 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
   final EventScrollConfiguration scrollConfiguration;
 
   /// Display full day events.
-  final FullDayEventBuilder<T> fullDayEventBuilder;
+  final FullDayEventBuilder<T, S> fullDayEventBuilder;
 
   /// If true this will show week day at bottom position.
   final bool showWeekDayAtBottom;
@@ -328,7 +329,7 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
                                       date: dates[index],
                                       minuteSlotSize: minuteSlotSize,
                                     ),
-                                    EventGenerator<T>(
+                                    EventGenerator<T, S>(
                                       height: height,
                                       date: filteredDates[index],
                                       onTileTap: onTileTap,

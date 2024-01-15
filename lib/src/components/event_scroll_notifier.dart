@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 
 import '../calendar_event_data.dart';
 
-class EventScrollConfiguration<T extends Object?> extends ValueNotifier<bool> {
+class EventScrollConfiguration<T extends Object?, S extends Object?>
+    extends ValueNotifier<bool> {
   bool _shouldScroll = false;
-  CalendarEventData<T>? _event;
+  CalendarEventData<T, S>? _event;
   Duration? _duration;
   Curve? _curve;
 
@@ -16,7 +17,7 @@ class EventScrollConfiguration<T extends Object?> extends ValueNotifier<bool> {
 
   bool get shouldScroll => _shouldScroll;
 
-  CalendarEventData<T>? get event => _event;
+  CalendarEventData<T, S>? get event => _event;
 
   Duration? get duration => _duration;
 
@@ -24,7 +25,7 @@ class EventScrollConfiguration<T extends Object?> extends ValueNotifier<bool> {
 
   // This function will be completed once [completeScroll] is called.
   Future<void> setScrollEvent({
-    required CalendarEventData<T> event,
+    required CalendarEventData<T, S> event,
     required Duration? duration,
     required Curve? curve,
   }) {

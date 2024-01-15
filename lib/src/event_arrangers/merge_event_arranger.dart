@@ -4,7 +4,8 @@
 
 part of 'event_arrangers.dart';
 
-class MergeEventArranger<T extends Object?> extends EventArranger<T> {
+class MergeEventArranger<T extends Object?, S extends Object?>
+    extends EventArranger<T, S> {
   /// This class will provide method that will merge all the simultaneous
   /// events. and that will act like one single event.
   /// [OrganizedCalendarEventData.events] will gives
@@ -26,8 +27,8 @@ class MergeEventArranger<T extends Object?> extends EventArranger<T> {
   /// Make sure that all the events that are passed in [events], must be in
   /// ascending order of start time.
   @override
-  List<OrganizedCalendarEventData<T>> arrange({
-    required List<CalendarEventData<T>> events,
+  List<OrganizedCalendarEventData<T, S>> arrange({
+    required List<CalendarEventData<T, S>> events,
     required double height,
     required double width,
     required double heightPerMinute,
@@ -35,7 +36,7 @@ class MergeEventArranger<T extends Object?> extends EventArranger<T> {
     // TODO: Right now all the events that are passed in this function must be
     // sorted in ascending order of the start time.
     //
-    final arrangedEvents = <OrganizedCalendarEventData<T>>[];
+    final arrangedEvents = <OrganizedCalendarEventData<T, S>>[];
 
     for (final event in events) {
       // Checks if an event has valid start and end time.
@@ -93,7 +94,7 @@ class MergeEventArranger<T extends Object?> extends EventArranger<T> {
             ? 0.0
             : height - eventEnd * heightPerMinute;
 
-        final newEvent = OrganizedCalendarEventData<T>(
+        final newEvent = OrganizedCalendarEventData<T, S>(
           top: top,
           bottom: bottom,
           left: 0,
@@ -122,7 +123,7 @@ class MergeEventArranger<T extends Object?> extends EventArranger<T> {
             ? 0.0
             : height - endDuration * heightPerMinute;
 
-        final newEvent = OrganizedCalendarEventData<T>(
+        final newEvent = OrganizedCalendarEventData<T, S>(
           top: top,
           bottom: bottom,
           left: 0,

@@ -215,7 +215,8 @@ class TimeLine extends StatelessWidget {
 }
 
 /// A widget that display event tiles in day/week view.
-class EventGenerator<T extends Object?> extends StatelessWidget {
+class EventGenerator<T extends Object?, S extends Object?>
+    extends StatelessWidget {
   /// Height of display area
   final double height;
 
@@ -223,22 +224,22 @@ class EventGenerator<T extends Object?> extends StatelessWidget {
   final double width;
 
   /// List of events to display.
-  final List<CalendarEventData<T>> events;
+  final List<CalendarEventData<T, S>> events;
 
   /// Defines height of single minute in day/week view page.
   final double heightPerMinute;
 
   /// Defines how to arrange events.
-  final EventArranger<T> eventArranger;
+  final EventArranger<T, S> eventArranger;
 
   /// Defines how event tile will be displayed.
-  final EventTileBuilder<T> eventTileBuilder;
+  final EventTileBuilder<T, S> eventTileBuilder;
 
   /// Defines date for which events will be displayed in given display area.
   final DateTime date;
 
   /// Called when user taps on event tile.
-  final CellTapCallback<T>? onTileTap;
+  final CellTapCallback<T, S>? onTileTap;
 
   final EventScrollConfiguration scrollNotifier;
 

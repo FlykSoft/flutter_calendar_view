@@ -60,12 +60,12 @@ class CircularCell extends StatelessWidget {
   }
 }
 
-class FilledCell<T extends Object?> extends StatelessWidget {
+class FilledCell<T extends Object?, S extends Object?> extends StatelessWidget {
   /// Date of current cell.
   final DateTime date;
 
   /// List of events on for current date.
-  final List<CalendarEventData<T>> events;
+  final List<CalendarEventData<T, S>> events;
 
   /// defines date string for current cell.
   final StringProvider? dateStringBuilder;
@@ -84,7 +84,7 @@ class FilledCell<T extends Object?> extends StatelessWidget {
   final Color tileColor;
 
   /// Called when user taps on any event tile.
-  final TileTapCallback<T>? onTileTap;
+  final TileTapCallback<T, S>? onTileTap;
 
   /// defines that [date] is in current month or not.
   final bool isInMonth;

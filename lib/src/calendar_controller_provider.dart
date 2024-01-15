@@ -2,9 +2,10 @@ import 'package:flutter/widgets.dart';
 
 import 'event_controller.dart';
 
-class CalendarControllerProvider<T extends Object?> extends InheritedWidget {
+class CalendarControllerProvider<T extends Object?, S extends Object?>
+    extends InheritedWidget {
   /// Event controller for Calendar views.
-  final EventController<T> controller;
+  final EventController<T, S> controller;
 
   /// This will provide controller to its subtree.
   /// If controller argument is not provided in calendar views then
@@ -18,10 +19,10 @@ class CalendarControllerProvider<T extends Object?> extends InheritedWidget {
     required Widget child,
   }) : super(key: key, child: child);
 
-  static CalendarControllerProvider<T> of<T extends Object?>(
-      BuildContext context) {
+  static CalendarControllerProvider<T, S>
+      of<T extends Object?, S extends Object?>(BuildContext context) {
     final result = context
-        .dependOnInheritedWidgetOfExactType<CalendarControllerProvider<T>>();
+        .dependOnInheritedWidgetOfExactType<CalendarControllerProvider<T, S>>();
     assert(
         result != null,
         'No CalendarControllerProvider<$T> found in context. '

@@ -9,7 +9,7 @@ import '../calendar_view.dart';
 @immutable
 
 /// {@macro calendar_event_data_doc}
-class CalendarEventData<T extends Object?> {
+class CalendarEventData<T extends Object?, S extends Object?> {
   /// Specifies date on which all these events are.
   final DateTime date;
 
@@ -36,6 +36,8 @@ class CalendarEventData<T extends Object?> {
   /// Event on [date].
   final T? event;
 
+  final S? owner;
+
   final DateTime? _endDate;
 
   /// Define style of title.
@@ -50,6 +52,7 @@ class CalendarEventData<T extends Object?> {
     required DateTime date,
     this.description,
     this.event,
+    this.owner,
     this.color = Colors.blue,
     this.startTime,
     this.endTime,
@@ -106,7 +109,7 @@ class CalendarEventData<T extends Object?> {
   /// Returns new object of [CalendarEventData] with the updated values defined
   /// as the arguments.
   ///
-  CalendarEventData<T> copyWith({
+  CalendarEventData<T, S> copyWith({
     String? title,
     String? description,
     T? event,
@@ -117,6 +120,7 @@ class CalendarEventData<T extends Object?> {
     TextStyle? descriptionStyle,
     DateTime? endDate,
     DateTime? date,
+    S? owner,
   }) {
     return CalendarEventData(
       title: title ?? this.title,
@@ -129,6 +133,7 @@ class CalendarEventData<T extends Object?> {
       endDate: endDate ?? this.endDate,
       event: event ?? this.event,
       titleStyle: titleStyle ?? this.titleStyle,
+      owner: owner ?? this.owner,
     );
   }
 
@@ -137,7 +142,7 @@ class CalendarEventData<T extends Object?> {
 
   @override
   bool operator ==(Object other) {
-    return other is CalendarEventData<T> &&
+    return other is CalendarEventData<T, S> &&
         date.compareWithoutTime(other.date) &&
         endDate.compareWithoutTime(other.endDate) &&
         ((event == null && other.event == null) ||

@@ -22,9 +22,9 @@ import '../typedefs.dart';
 import '_internal_week_view_page.dart';
 
 /// [Widget] to display week view.
-class WeekView<T extends Object?> extends StatefulWidget {
+class WeekView<T extends Object?, S extends Object?> extends StatefulWidget {
   /// Builder to build tile for events.
-  final EventTileBuilder<T>? eventTileBuilder;
+  final EventTileBuilder<T, S>? eventTileBuilder;
 
   /// Builder for timeline.
   final DateWidgetBuilder? timeLineBuilder;
@@ -55,7 +55,7 @@ class WeekView<T extends Object?> extends StatefulWidget {
   final String Function(int)? weekDayDateStringBuilder;
 
   /// Arrange events.
-  final EventArranger<T>? eventArranger;
+  final EventArranger<T, S>? eventArranger;
 
   /// Called whenever user changes week.
   final CalendarPageChangeCallBack? onPageChange;
@@ -108,7 +108,7 @@ class WeekView<T extends Object?> extends StatefulWidget {
 
   /// Controller for Week view thia will refresh view when user adds or removes
   /// event from controller.
-  final EventController<T>? controller;
+  final EventController<T, S>? controller;
 
   /// Defines height occupied by one minute of time span. This parameter will
   /// be used to calculate total height of Week view.
@@ -145,7 +145,7 @@ class WeekView<T extends Object?> extends StatefulWidget {
   final double scrollOffset;
 
   /// Called when user taps on event tile.
-  final CellTapCallback<T>? onEventTap;
+  final CellTapCallback<T, S>? onEventTap;
 
   /// Show weekends or not
   ///
@@ -196,7 +196,7 @@ class WeekView<T extends Object?> extends StatefulWidget {
   final SafeAreaOption safeAreaOption;
 
   /// Display full day event builder.
-  final FullDayEventBuilder<T>? fullDayEventBuilder;
+  final FullDayEventBuilder<T, S>? fullDayEventBuilder;
 
   ///Show half hour indicator
   final bool showHalfHours;
@@ -281,10 +281,11 @@ class WeekView<T extends Object?> extends StatefulWidget {
         super(key: key);
 
   @override
-  WeekViewState<T> createState() => WeekViewState<T>();
+  WeekViewState<T, S> createState() => WeekViewState<T, S>();
 }
 
-class WeekViewState<T extends Object?> extends State<WeekView<T>> {
+class WeekViewState<T extends Object?, S extends Object?>
+    extends State<WeekView<T, S>> {
   late double _width;
   late double _height;
   late double _timeLineWidth;
@@ -297,7 +298,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   late int _totalWeeks;
   late int _currentIndex;
 
-  late EventArranger<T> _eventArranger;
+  late EventArranger<T, S> _eventArranger;
 
   late HourIndicatorSettings _hourIndicatorSettings;
   late CustomHourLinePainter _hourLinePainter;
@@ -309,11 +310,11 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   late PageController _pageController;
 
   late DateWidgetBuilder _timeLineBuilder;
-  late EventTileBuilder<T> _eventTileBuilder;
+  late EventTileBuilder<T, S> _eventTileBuilder;
   late WeekPageHeaderBuilder _weekHeaderBuilder;
   late DateWidgetBuilder _weekDayBuilder;
   late WeekNumberBuilder _weekNumberBuilder;
-  late FullDayEventBuilder<T> _fullDayEventBuilder;
+  late FullDayEventBuilder<T, S> _fullDayEventBuilder;
   late DetectorBuilder _weekDetectorBuilder;
 
   late double _weekTitleWidth;
@@ -321,7 +322,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
 
   late VoidCallback _reloadCallback;
 
-  EventController<T>? _controller;
+  EventController<T, S>? _controller;
 
   late ScrollController _scrollController;
 
@@ -348,7 +349,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     _scrollController =
         ScrollController(initialScrollOffset: widget.scrollOffset);
     _pageController = PageController(initialPage: _currentIndex);
-    _eventArranger = widget.eventArranger ?? SideEventArranger<T>();
+    _eventArranger = widget.eventArranger ?? SideEventArranger<T, S>();
 
     _assignBuilders();
   }
@@ -358,7 +359,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     super.didChangeDependencies();
 
     final newController = widget.controller ??
-        CalendarControllerProvider.of<T>(context).controller;
+        CalendarControllerProvider.of<T, S>(context).controller;
 
     if (_controller != newController) {
       _controller = newController;
@@ -374,11 +375,11 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   }
 
   @override
-  void didUpdateWidget(WeekView<T> oldWidget) {
+  void didUpdateWidget(WeekView<T, S> oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Update controller.
     final newController = widget.controller ??
-        CalendarControllerProvider.of<T>(context).controller;
+        CalendarControllerProvider.of<T, S>(context).controller;
 
     if (newController != _controller) {
       _controller?.removeListener(_reloadCallback);
@@ -397,7 +398,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
       _pageController.jumpToPage(_currentIndex);
     }
 
-    _eventArranger = widget.eventArranger ?? SideEventArranger<T>();
+    _eventArranger = widget.eventArranger ?? SideEventArranger<T, S>();
 
     // Update heights.
     _calculateHeights();
@@ -447,7 +448,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
 
                         return ValueListenableBuilder(
                           valueListenable: _scrollConfiguration,
-                          builder: (_, __, ___) => InternalWeekViewPage<T>(
+                          builder: (_, __, ___) => InternalWeekViewPage<T, S>(
                             key: ValueKey(
                                 _hourHeight.toString() + dates[0].toString()),
                             height: _height,
@@ -509,7 +510,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   ///
   /// This will throw [AssertionError] if controller is called before its
   /// initialization is complete.
-  EventController<T> get controller {
+  EventController<T, S> get controller {
     if (_controller == null) {
       throw "EventController is not initialized yet.";
     }
@@ -608,7 +609,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   }
 
   Widget _defaultFullDayEventBuilder(
-      List<CalendarEventData<T>> events, DateTime dateTime) {
+      List<CalendarEventData<T, S>> events, DateTime dateTime) {
     return FullDayEventView(
       events: events,
       boxConstraints: BoxConstraints(maxHeight: 65),
@@ -768,7 +769,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   /// [widget.eventTileBuilder] is null
   Widget _defaultEventTileBuilder(
       DateTime date,
-      List<CalendarEventData<T>> events,
+      List<CalendarEventData<T, S>> events,
       Rect boundary,
       DateTime startDuration,
       DateTime endDuration) {
@@ -940,7 +941,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   /// Jumps to page which contains given events and make event
   /// tile visible to user.
   ///
-  Future<void> jumpToEvent(CalendarEventData<T> event) async {
+  Future<void> jumpToEvent(CalendarEventData<T, S> event) async {
     jumpToWeek(event.date);
 
     await _scrollConfiguration.setScrollEvent(
@@ -964,7 +965,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   /// scroll to event tile.
   ///
   ///
-  Future<void> animateToEvent(CalendarEventData<T> event,
+  Future<void> animateToEvent(CalendarEventData<T, S> event,
       {Duration? duration, Curve? curve}) async {
     await animateToWeek(event.date, duration: duration, curve: curve);
     await _scrollConfiguration.setScrollEvent(

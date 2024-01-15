@@ -16,10 +16,10 @@ import '../extensions.dart';
 import '../style/header_style.dart';
 import '../typedefs.dart';
 
-class MonthView<T extends Object?> extends StatefulWidget {
+class MonthView<T extends Object?, S extends Object?> extends StatefulWidget {
   /// A function that returns a [Widget] that determines appearance of
   /// each cell in month calendar.
-  final CellBuilder<T>? cellBuilder;
+  final CellBuilder<T, S>? cellBuilder;
 
   /// Builds month page title.
   ///
@@ -43,13 +43,13 @@ class MonthView<T extends Object?> extends StatefulWidget {
   final CalendarPageChangeCallBack? onPageChange;
 
   /// This function will be called when user taps on month view cell.
-  final CellTapCallback<T>? onCellTap;
+  final CellTapCallback<T, S>? onCellTap;
 
   /// This function will be called when user will tap on a single event
   /// tile inside a cell.
   ///
   /// This function will only work if [cellBuilder] is null.
-  final TileTapCallback<T>? onEventTap;
+  final TileTapCallback<T, S>? onEventTap;
 
   /// Builds the name of the weeks.
   ///
@@ -104,7 +104,7 @@ class MonthView<T extends Object?> extends StatefulWidget {
   ///
   /// If [controller] is null it will take controller from
   /// [CalendarControllerProvider.controller].
-  final EventController<T>? controller;
+  final EventController<T, S>? controller;
 
   /// Defines width of default border
   ///
@@ -182,11 +182,12 @@ class MonthView<T extends Object?> extends StatefulWidget {
         super(key: key);
 
   @override
-  MonthViewState<T> createState() => MonthViewState<T>();
+  MonthViewState<T, S> createState() => MonthViewState<T, S>();
 }
 
 /// State of month view.
-class MonthViewState<T extends Object?> extends State<MonthView<T>> {
+class MonthViewState<T extends Object?, S extends Object?>
+    extends State<MonthView<T, S>> {
   late DateTime _minDate;
   late DateTime _maxDate;
 
@@ -204,13 +205,13 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
   late double _cellWidth;
   late double _cellHeight;
 
-  late CellBuilder<T> _cellBuilder;
+  late CellBuilder<T, S> _cellBuilder;
 
   late WeekDayBuilder _weekBuilder;
 
   late DateWidgetBuilder _headerBuilder;
 
-  EventController<T>? _controller;
+  EventController<T, S>? _controller;
 
   late VoidCallback _reloadCallback;
 
@@ -238,7 +239,7 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
     super.didChangeDependencies();
 
     final newController = widget.controller ??
-        CalendarControllerProvider.of<T>(context).controller;
+        CalendarControllerProvider.of<T, S>(context).controller;
 
     if (newController != _controller) {
       _controller = newController;
@@ -256,11 +257,11 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
   }
 
   @override
-  void didUpdateWidget(MonthView<T> oldWidget) {
+  void didUpdateWidget(MonthView<T, S> oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Update controller.
     final newController = widget.controller ??
-        CalendarControllerProvider.of<T>(context).controller;
+        CalendarControllerProvider.of<T, S>(context).controller;
 
     if (newController != _controller) {
       _controller?.removeListener(_reloadCallback);
@@ -342,7 +343,7 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
                           return SizedBox(
                             height: _height,
                             width: _width,
-                            child: _MonthPageBuilder<T>(
+                            child: _MonthPageBuilder<T, S>(
                               key: ValueKey(date.toIso8601String()),
                               onCellTap: widget.onCellTap,
                               onDateLongPress: widget.onDateLongPress,
@@ -377,7 +378,7 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
   ///
   /// This will throw [AssertionError] if controller is called before its
   /// initialization is complete.
-  EventController<T> get controller {
+  EventController<T, S> get controller {
     if (_controller == null) {
       throw "EventController is not initialized yet.";
     }
@@ -508,8 +509,8 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
 
   /// Default cell builder. Used when [widget.cellBuilder] is null
   Widget _defaultCellBuilder(
-      date, List<CalendarEventData<T>> events, isToday, isInMonth) {
-    return FilledCell<T>(
+      date, List<CalendarEventData<T, S>> events, isToday, isInMonth) {
+    return FilledCell<T, S>(
       date: date,
       shouldHighlight: isToday,
       backgroundColor: isInMonth ? Constants.white : Constants.offWhite,
@@ -593,17 +594,17 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
 }
 
 /// A single month page.
-class _MonthPageBuilder<T> extends StatelessWidget {
+class _MonthPageBuilder<T, S> extends StatelessWidget {
   final double cellRatio;
   final bool showBorder;
   final double borderSize;
   final Color borderColor;
-  final CellBuilder<T> cellBuilder;
+  final CellBuilder<T, S> cellBuilder;
   final DateTime date;
-  final EventController<T> controller;
+  final EventController<T, S> controller;
   final double width;
   final double height;
-  final CellTapCallback<T>? onCellTap;
+  final CellTapCallback<T, S>? onCellTap;
   final DatePressCallback? onDateLongPress;
   final WeekDays startDay;
   final ScrollPhysics physics;
