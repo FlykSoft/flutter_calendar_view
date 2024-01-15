@@ -175,20 +175,26 @@ class InternalDayViewPage<T extends Object?, S extends Object?>
           Container(
             height: ownerViewConfiguration.height,
             width: (controller.allOwners.length * _ownerWidth) + timeLineWidth,
-            child: ListView.builder(
-              controller: scrollableHeaderScrollController,
-              padding: EdgeInsetsDirectional.only(start: timeLineWidth),
-              scrollDirection: Axis.horizontal,
-              itemCount: controller.allOwners.length,
-              itemBuilder: (context, index) => SizedBox(
-                width: _ownerWidth,
-                child: ownerTileBuilder(
-                  controller.allOwners.elementAt(
-                    index,
-                  ),
-                ),
-              ),
-            ),
+            color: ownerViewConfiguration.backgroundColor,
+            child: controller.allOwners.isNotEmpty
+                ? ListView.separated(
+                    controller: scrollableHeaderScrollController,
+                    padding: EdgeInsetsDirectional.only(start: timeLineWidth),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: controller.allOwners.length,
+                    separatorBuilder: (context, index) =>
+                        ownerViewConfiguration.divider ??
+                        const SizedBox.shrink(),
+                    itemBuilder: (context, index) => SizedBox(
+                      width: _ownerWidth,
+                      child: ownerTileBuilder(
+                        controller.allOwners.elementAt(
+                          index,
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -247,11 +253,12 @@ class InternalDayViewPage<T extends Object?, S extends Object?>
                         scrollDirection: Axis.horizontal,
                         child: SizedBox(
                           height: height,
-                          width: _totalOwnersWidth,
+                          width: _totalOwnersWidthOrDefaultIfEmpty,
                           child: Stack(
                             children: [
                               CustomPaint(
-                                size: Size(_totalOwnersWidth, height),
+                                size: Size(
+                                    _totalOwnersWidthOrDefaultIfEmpty, height),
                                 painter: hourLinePainter(
                                   hourIndicatorSettings.color,
                                   hourIndicatorSettings.height,
@@ -267,7 +274,8 @@ class InternalDayViewPage<T extends Object?, S extends Object?>
                               ),
                               if (showHalfHours)
                                 CustomPaint(
-                                  size: Size(_totalOwnersWidth, height),
+                                  size: Size(_totalOwnersWidthOrDefaultIfEmpty,
+                                      height),
                                   painter: HalfHourLinePainter(
                                     lineColor: halfHourIndicatorSettings.color,
                                     lineHeight:
@@ -284,7 +292,8 @@ class InternalDayViewPage<T extends Object?, S extends Object?>
                                 ),
                               if (showQuarterHours)
                                 CustomPaint(
-                                  size: Size(_totalOwnersWidth, height),
+                                  size: Size(_totalOwnersWidthOrDefaultIfEmpty,
+                                      height),
                                   painter: QuarterHourLinePainter(
                                     lineColor:
                                         quarterHourIndicatorSettings.color,
@@ -301,45 +310,65 @@ class InternalDayViewPage<T extends Object?, S extends Object?>
                                   ),
                                 ),
                               dayDetectorBuilder(
-                                width: width,
+                                width: _totalOwnersWidthOrDefaultIfEmpty,
                                 height: height,
                                 heightPerMinute: heightPerMinute,
                                 date: date,
                                 minuteSlotSize: minuteSlotSize,
                               ),
-                              Row(
-                                children: controller.allOwners
-                                    .map(
-                                      (owner) => Expanded(
-                                        child: EventGenerator<T, S>(
-                                          height: height,
-                                          date: date,
-                                          onTileTap: onTileTap,
-                                          eventArranger: eventArranger,
-                                          events:
-                                              controller.getOwnerEventsOnDay(
-                                            date,
-                                            owner,
-                                            includeFullDayEvents: false,
-                                          ),
-                                          heightPerMinute: heightPerMinute,
-                                          eventTileBuilder: eventTileBuilder,
-                                          scrollNotifier: scrollNotifier,
-                                          width: _ownerWidth -
-                                              hourIndicatorSettings.offset -
-                                              verticalLineOffset,
-                                        ),
-                                      ),
+                              controller.allOwners.isNotEmpty
+                                  ? Row(
+                                      children: controller.allOwners
+                                          .map(
+                                            (owner) => Expanded(
+                                              child: EventGenerator<T, S>(
+                                                height: height,
+                                                date: date,
+                                                onTileTap: onTileTap,
+                                                eventArranger: eventArranger,
+                                                events: controller
+                                                    .getOwnerEventsOnDay(
+                                                  date,
+                                                  owner,
+                                                  includeFullDayEvents: false,
+                                                ),
+                                                heightPerMinute:
+                                                    heightPerMinute,
+                                                eventTileBuilder:
+                                                    eventTileBuilder,
+                                                scrollNotifier: scrollNotifier,
+                                                width: _ownerWidth -
+                                                    hourIndicatorSettings
+                                                        .offset -
+                                                    verticalLineOffset,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
                                     )
-                                    .toList(),
-                              ),
+                                  : EventGenerator<T, S>(
+                                      height: height,
+                                      date: date,
+                                      onTileTap: onTileTap,
+                                      eventArranger: eventArranger,
+                                      events: controller.getEventsOnDay(
+                                        date,
+                                        includeFullDayEvents: false,
+                                      ),
+                                      heightPerMinute: heightPerMinute,
+                                      eventTileBuilder: eventTileBuilder,
+                                      scrollNotifier: scrollNotifier,
+                                      width: _ownerWidth -
+                                          hourIndicatorSettings.offset -
+                                          verticalLineOffset,
+                                    ),
                               if (showLiveLine &&
                                   liveTimeIndicatorSettings.height > 0)
                                 IgnorePointer(
                                   child: LiveTimeIndicator(
                                     liveTimeIndicatorSettings:
                                         liveTimeIndicatorSettings,
-                                    width: _totalOwnersWidth,
+                                    width: _totalOwnersWidthOrDefaultIfEmpty,
                                     height: height,
                                     heightPerMinute: heightPerMinute,
                                     timeLineWidth: 0,
@@ -366,4 +395,7 @@ class InternalDayViewPage<T extends Object?, S extends Object?>
   double get _defaultOwnerWidth => width - timeLineWidth;
 
   double get _totalOwnersWidth => controller.allOwners.length * _ownerWidth;
+
+  double get _totalOwnersWidthOrDefaultIfEmpty =>
+      controller.allOwners.isNotEmpty ? _totalOwnersWidth : _ownerWidth;
 }
